@@ -37,10 +37,24 @@ describe '/api/v2/auth functionality test' do
         expect(response.headers['Authorization']).to include "Bearer"
       end
 
-      it "doesn't return set-cookie header on valid session" do
+      it 'doesn\'t return set-cookie header on valid session' do
         get auth_request
         expect(response.status).to eq(200)
         expect(response.headers['Set-Cookie']).to be_nil
+      end
+
+      it 'returns set-cookie header with updated expiration' do
+        allow(Barong::App.config).to receive(:barong_session_auto_renew).and_return(true)
+
+        expect {
+          get auth_request
+        }.to change { response.cookies }
+
+        expect(response.status).to eq(200)
+        expect(response.headers['Set-Cookie']).not_to be_nil
+        expect(
+          Time.parse(response.headers['Set-Cookie'].split(';')[-2].split('=')[1])
+        ).to be_within(10).of(Time.now + 30.minutes)
       end
 
       it 'allows any type of request' do
