@@ -17,6 +17,7 @@ module API
           user.referral_uid
         end
         expose :data, documentation: { type: 'String', desc: 'additional phone and profile info' }
+        expose :secret, if: lambda { |instance, options| options[:secret] == :true}
       end
     end
   end

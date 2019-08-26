@@ -13,6 +13,8 @@ class AuthorizeController < ActionController::Metal
     # checks if request is blacklisted
     return access_error!('authz.permission_denied', 401) if req.restricted?('block')
 
+    return access_error!('authz.csrf_protection', 401) unless csrf_token_validate?
+
     response.status = 200
     return if req.restricted?('pass') # check if request is whitelisted
     request.session_options[:skip] = true # false by default (always sets set-cookie header)
@@ -33,5 +35,14 @@ class AuthorizeController < ActionController::Metal
   def access_error!(text, code)
     response.status = code
     response.body = { 'errors': [text] }.to_json
+  end
+
+  def csrf_token_validate?
+    if request.get? || request.head? || (request.headers.key?('X-CSRF-Auth') &&
+       request.headers['X-CSRF-Auth'] == Rails.cache.read(session[:uid]))
+      return true
+    end
+
+    return false
   end
 end

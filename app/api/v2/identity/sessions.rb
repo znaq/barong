@@ -55,11 +55,13 @@ module API::V2
                          action: 'login', result: 'failed', error_text: 'invalid_params')
           end
 
+          secret = SecureRandom.base64(32)
           unless user.otp
             activity_record(user: user.id, action: 'login', result: 'succeed', topic: 'session')
             session[:uid] = user.uid
 
-            present user, with: API::V2::Entities::UserWithFullInfo
+            Rails.cache.write(user.uid, secret, expires_in: Barong::App.config.session_expire_time.to_i.seconds)
+            present user, with: API::V2::Entities::User, secret: :true
             return status 200
           end
 
@@ -76,7 +78,8 @@ module API::V2
           activity_record(user: user.id, action: 'login::2fa', result: 'succeed', topic: 'session')
           session[:uid] = user.uid
 
-          present user, with: API::V2::Entities::UserWithFullInfo
+          Rails.cache.write(user.uid, secret, expires_in: Barong::App.config.session_expire_time.to_i.seconds)
+          present user, with: API::V2::Entities::User, secret: :true
           status(200)
         end
 
@@ -94,6 +97,8 @@ module API::V2
           activity_record(user: user.id, action: 'logout', result: 'succeed', topic: 'session')
 
           session.destroy
+          Rails.cache.delete(user.uid)
+
           status(200)
         end
       end
