@@ -187,6 +187,21 @@ describe API::V2::Identity::Sessions do
         end
       end
     end
+
+    context 'event API behavior' do
+      before do
+        allow(EventAPI).to receive(:notify)
+      end
+
+      it 'receive system.session.create notify' do
+        allow(Barong::App.config).to receive(:barong_session_create_event).and_return(true)
+        post uri, params: { email: email, password: password }
+
+        expect(EventAPI).to have_received(:notify).with('system.session.create',
+          hash_including({ record: hash_including(user: anything, user_ip: anything, user_agent: anything) })
+        )
+      end
+    end
   end
 
   describe 'DELETE /api/v2/identity/sessions' do

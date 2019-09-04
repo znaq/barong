@@ -248,6 +248,27 @@ event: {
   }
  ```
 
+## Format of `system.session.create` event
+```ruby
+  event: {
+    record: {
+      user: {
+        uid: "ID30DD0DD986",
+        email: "example@barong.io",
+        role: "member",
+        level: 0,
+        otp: false,
+        state: "pending",
+        created_at: "2019-01-28T08:35:29Z",
+        updated_at: "2019-01-28T08:35:29Z"
+      },
+      user_ip: "127.0.0.1",
+      user_agent: "Chrome"
+    },
+    name: "system.session.create"
+  }
+```
+
  ## Producing events using Ruby
 
 ```ruby
