@@ -4,7 +4,7 @@
 class Document < ApplicationRecord
   acts_as_eventable prefix: 'document', on: %i[create]
 
-  mount_uploader :upload, UploadUploader
+  mount_uploader :upload, Barong::App.config.uploader
 
   TYPES = ['Passport', 'Identity card', 'Driver license', 'Utility Bill'].freeze
   STATES = %w[verified pending rejected].freeze
@@ -13,6 +13,7 @@ class Document < ApplicationRecord
   serialize :metadata, JSON
   validates :doc_type, :doc_number, :upload, presence: true
   validates :doc_type, inclusion: { in: TYPES }
+  validates :doc_expire, presence: true, if: -> { Barong::App.config.required_docs_expire }
 
   validates :doc_number, length: { maximum: 128 },
                          format: {
